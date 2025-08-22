@@ -9,24 +9,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
+
+	"myRoutine/models"
 )
 
-type Site struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
-type SitesList struct {
-	Websites []Site `json:"websites"`
-}
-
-type Runner struct {
-	mu sync.Mutex
-	running map[string] bool
-}
-
-func LoadFromJson(fileDir string) []Site {
+func LoadFromJson(fileDir string) []models.Site {
 	jsonFile, err := os.Open(fileDir)
 	if err != nil {
 		fmt.Printf("error: %v \n", err)
@@ -35,7 +22,7 @@ func LoadFromJson(fileDir string) []Site {
 	defer jsonFile.Close() // closing it right after the function ends.
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-	var sites SitesList
+	var sites models.SitesList
 
 	err = json.Unmarshal(byteValue, &sites)
 	if err != nil {
@@ -63,14 +50,14 @@ func getStatus(url string, ch chan<- bool) {
 	return
 }
 
-func updateStatus(url string, ch <-chan bool, done <-chan time.Time, runningStat *Runner) {
+func updateStatus(url string, ch <-chan bool, done <-chan time.Time, runningStat *models.Runner) {
 	fmt.Printf("open to receive form %s \n", url)
 	for {
 		select {
 			case resp := <-ch:
-				runningStat.mu.Lock()
-				runningStat.running[url] = false
-				runningStat.mu.Unlock()
+				runningStat.Mu.Lock()
+				runningStat.Running[url] = false
+				runningStat.Mu.Unlock()
 				if !resp{
 					fmt.Printf("%s updated! --> %t\n" ,url, resp)
 				}
@@ -88,17 +75,17 @@ func main() {
 	ServerDone := time.After(20 * time.Minute) // using the server for 20 minuets and then turning it off.
 
 	outputs := make([]chan bool, len(sites)) // a set of channels that each is declared statically // a set of channels that each is declared statically.
-	runningStat := make([]*Runner, len(sites))
+	runningStat := make([]*models.Runner, len(sites))
 
 	ticker := time.NewTicker(1 * time.Second) // how does this ticker thing work?
 	defer ticker.Stop()
 
 	for i, url := range(sites) {
 		outputs[i] = make(chan bool, 1)
-		runningStat[i] = &Runner{running: make(map[string] bool)} // initializing the runningStat memory
-		runningStat[i].mu.Lock()
-		runningStat[i].running[url.Url] = false
-		runningStat[i].mu.Unlock()
+		runningStat[i] = &models.Runner{Running: make(map[string] bool)} // initializing the runningStat memory
+		runningStat[i].Mu.Lock()
+		runningStat[i].Running[url.Url] = false
+		runningStat[i].Mu.Unlock()
 		go updateStatus(url.Url, outputs[i], ServerDone, runningStat[i])
 	}
 
@@ -108,13 +95,13 @@ func main() {
 			// run all go routines and check
 			fmt.Printf("ticker ---------------\n")
 			for i, url := range(sites) {
-				if runningStat[i].running[url.Url] == false {
+				if runningStat[i].Running[url.Url] == false {
 					go getStatus(url.Url, outputs[i])
-					runningStat[i].mu.Lock()
-					runningStat[i].running[url.Url] = true
-					runningStat[i].mu.Unlock()
+					runningStat[i].Mu.Lock()
+					runningStat[i].Running[url.Url] = true
+					runningStat[i].Mu.Unlock()
 				} else {
-					fmt.Printf("%s is still running\n", url.Url)
+					fmt.Printf("%s is still Running\n", url.Url)
 				}
 			}
 		case <- ServerDone:
