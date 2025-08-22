@@ -1,3 +1,4 @@
+// check if a site goes down or comes back up. toggle status and then give a notification.
 package main
 
 import (
@@ -8,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 )
 
 type Site struct {
@@ -17,6 +19,11 @@ type Site struct {
 
 type SitesList struct {
 	Websites []Site `json:"websites"`
+}
+
+type Runner struct {
+	mu sync.Mutex
+	running map[string] bool
 }
 
 func LoadFromJson(fileDir string) []Site {
@@ -56,14 +63,15 @@ func getStatus(url string, ch chan<- bool) {
 	return
 }
 
-func updateStatus(url string, ch <-chan bool, done <-chan time.Time, runningStat chan<- bool) {
+func updateStatus(url string, ch <-chan bool, done <-chan time.Time, runningStat *Runner) {
 	fmt.Printf("open to receive form %s \n", url)
 	for {
 		select {
 			case resp := <-ch:
-				runningStat <- false
-				if !resp {
-					// update the list
+				runningStat.mu.Lock()
+				runningStat.running[url] = false
+				runningStat.mu.Unlock()
+				if !resp{
 					fmt.Printf("%s updated! --> %t\n" ,url, resp)
 				}
 			case <- done:
@@ -77,20 +85,21 @@ func main() {
 	jsonFile := "./websites.json"
 	sites := LoadFromJson(jsonFile)
 
-	// done := make(chan bool)
 	ServerDone := time.After(20 * time.Minute) // using the server for 20 minuets and then turning it off.
 
 	outputs := make([]chan bool, len(sites)) // a set of channels that each is declared statically // a set of channels that each is declared statically.
-	running := make([]chan bool, len(sites)) // a set of channels that each is declared statically // a set of channels that each is declared statically.
+	runningStat := make([]*Runner, len(sites))
 
 	ticker := time.NewTicker(1 * time.Second) // how does this ticker thing work?
 	defer ticker.Stop()
 
 	for i, url := range(sites) {
-		outputs[i] = make(chan bool)
-		running[i] = make(chan bool, 1)
-		running[i] <- false
-		go updateStatus(url.Url, outputs[i], ServerDone, running[i])
+		outputs[i] = make(chan bool, 1)
+		runningStat[i] = &Runner{running: make(map[string] bool)} // initializing the runningStat memory
+		runningStat[i].mu.Lock()
+		runningStat[i].running[url.Url] = false
+		runningStat[i].mu.Unlock()
+		go updateStatus(url.Url, outputs[i], ServerDone, runningStat[i])
 	}
 
 	for {
@@ -99,22 +108,18 @@ func main() {
 			// run all go routines and check
 			fmt.Printf("ticker ---------------\n")
 			for i, url := range(sites) {
-				select{
-				case runningStat := <-running[i]:
-					if !runningStat{
-						go getStatus(url.Url, outputs[i])
-						running[i] <- true
-					} else {
-						running[i] <- runningStat
-					}
+				if runningStat[i].running[url.Url] == false {
+					go getStatus(url.Url, outputs[i])
+					runningStat[i].mu.Lock()
+					runningStat[i].running[url.Url] = true
+					runningStat[i].mu.Unlock()
+				} else {
+					fmt.Printf("%s is still running\n", url.Url)
 				}
 			}
 		case <- ServerDone:
 			fmt.Printf("The job is Done. Bye Bye server. \n")
 			return
 		}
-		// time.Sleep(1 * time.Second)
-		// fmt.Printf("%v", ticker)
-		
 	}
 }
