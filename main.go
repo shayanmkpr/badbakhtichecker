@@ -14,24 +14,6 @@ import (
 	"myRoutine/database"
 )
 
-func LoadFromJson(fileDir string) []models.Site {
-	jsonFile, err := os.Open(fileDir)
-	if err != nil {
-		fmt.Printf("error: %v \n", err)
-		log.Fatal(err)
-	}
-	defer jsonFile.Close() // closing it right after the function ends.
-
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	var sites models.SitesList
-
-	err = json.Unmarshal(byteValue, &sites)
-	if err != nil {
-		fmt.Printf("error: %v \n", err)
-		log.Fatal(err)
-	}
-	return sites.Websites
-}
 
 func getStatus(url string, ch chan<- bool) {
 
