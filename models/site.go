@@ -18,4 +18,3 @@ type Runner struct {
 	Mu sync.Mutex
 	Running map[string] bool
 }
-

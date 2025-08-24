@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"myRoutine/models"
+	"myRoutine/database"
 )
 
 func LoadFromJson(fileDir string) []models.Site {
