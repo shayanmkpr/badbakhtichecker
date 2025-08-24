@@ -7,7 +7,7 @@ import (
 type Site struct {
 	Url 	string
 	Name    string
-	Status  string
+	Status  bool
 }
 
 type SitesList struct {
