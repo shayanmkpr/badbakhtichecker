@@ -1,11 +1,9 @@
-package database
-
+package config
 import (
     "database/sql"
     "fmt"
 )
 
-// CreateTables creates all necessary database tables
 func CreateTables(db *sql.DB) error {
     createSitesTable := `
     CREATE TABLE IF NOT EXISTS sites (
@@ -19,11 +17,11 @@ func CreateTables(db *sql.DB) error {
     
     _, err := db.Exec(createSitesTable)
     if err != nil {
-        fmt.Printf("site table error: %v \n", err)
+        fmt.Printf("error: %v \n", err)
         return fmt.Errorf("failed to create sites table: %v", err)
     }
     
-    // Create trigger for SITES table (not users)
+    // Create trigger to automatically update 'updated_at' field
     createTrigger := `
     CREATE OR REPLACE FUNCTION update_updated_at_column()
     RETURNS TRIGGER AS $$
@@ -41,7 +39,7 @@ func CreateTables(db *sql.DB) error {
     
     _, err = db.Exec(createTrigger)
     if err != nil {
-        fmt.Printf("trigger error: %v \n", err)
+        fmt.Printf("error: %v \n", err)
         return fmt.Errorf("failed to create trigger: %v", err)
     }
     

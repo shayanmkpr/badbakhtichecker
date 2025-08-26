@@ -3,7 +3,7 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	-"github.com/lib/pq"
+	_"github.com/lib/pq"
 )
 
 type DatabaseConfig struct {
@@ -22,7 +22,7 @@ func GetDatabaseConfig() DatabaseConfig {
 		User:	"shayan", // should be set using env variables
 		Password: "shayanmkpr", //should be set using env varialbes
 		DBName:   "health", //should be set using env variables
-		SSLMode:  "disable"
+		SSLMode:  "disable",
 	}
 }
 

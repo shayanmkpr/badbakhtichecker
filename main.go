@@ -5,15 +5,22 @@ import (
 	"fmt"
 	"time"
 	"net/http"
-	"encoding/json"
-	"io/ioutil"
 	"log"
-	"os"
 
-	"myRoutine/models"
 	"myRoutine/database"
+	"myRoutine/config"
+	"myRoutine/models"
+	"database/sql"
+	_ "github.com/lib/pq"
 )
 
+/*
+the routes:
+read the json file and import everysite --> DB --> list sites for the main.go --> {/ticker/ -->check the status of all --> update DB}
+											|--> Update DB with new sites --|
+											|--> Remove sites --|
+											|--> Add sites --|
+*/
 
 func getStatus(url string, ch chan<- bool) {
 
@@ -33,17 +40,18 @@ func getStatus(url string, ch chan<- bool) {
 	return
 }
 
-func updateStatus(url string, ch <-chan bool, done <-chan time.Time, runningStat *models.Runner) {
-	fmt.Printf("open to receive form %s \n", url)
+func updateStatus(db *sql.DB, site models.Site,
+	ch <-chan bool, done <-chan time.Time, runningStat *models.Runner) {
+
+	fmt.Printf("open to receive form %s \n", site.Url)
 	for {
 		select {
 			case resp := <-ch:
 				runningStat.Mu.Lock()
-				runningStat.Running[url] = false
+				runningStat.Running[site.Url] = false
 				runningStat.Mu.Unlock()
-				if !resp{
-					fmt.Printf("%s updated! --> %t\n" ,url, resp)
-				}
+				// update the corresponding db row with the new stat
+				database.UpdateResponse(models.Site{Url: site.Url, Name: site.Name, Status: resp}, db)
 			case <- done:
 				return
 		}
@@ -52,32 +60,59 @@ func updateStatus(url string, ch <-chan bool, done <-chan time.Time, runningStat
 
 func main() {
 
+
+	// Connect to PostgreSQL
+	db, err := config.ConnectDB()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer db.Close()
+	fmt.Printf("the connection was established \n")
+
+	//Create the DB if it doesnt exist. The if is being handled in the function.
+	error := database.CreateTables(db)
+	if error != nil {
+		fmt.Printf("could not create tables: %v", err)
+		log.Fatal(err)
+	}
+
+	fmt.Printf("the tables were created or they were already there idk \n")
+
 	jsonFile := "./websites.json"
-	sites := LoadFromJson(jsonFile)
+	err = database.ReadJsontoDB(jsonFile, db) // read from json and put them into the DB
+	if err != nil{
+		fmt.Printf("the ReadJsontoDB error %v \n", err)
+	}
+	sites, err := database.ListSites(db) // load sites list form DB
+	if err != nil {
+		fmt.Printf("could not list sites from DB: %v", err)
+		log.Fatal(err)
+	}
 
 	ServerDone := time.After(20 * time.Minute) // using the server for 20 minuets and then turning it off.
 
-	outputs := make([]chan bool, len(sites)) // a set of channels that each is declared statically // a set of channels that each is declared statically.
-	runningStat := make([]*models.Runner, len(sites))
+	outputs := make([]chan bool, len(sites.Websites)) // a set of channels that each is declared statically // a set of channels that each is declared statically.
+	runningStat := make([]*models.Runner, len(sites.Websites))
 
 	ticker := time.NewTicker(1 * time.Second) // how does this ticker thing work?
 	defer ticker.Stop()
 
-	for i, url := range(sites) {
+	for i, site := range(sites.Websites) {
 		outputs[i] = make(chan bool, 1)
 		runningStat[i] = &models.Runner{Running: make(map[string] bool)} // initializing the runningStat memory
 		runningStat[i].Mu.Lock()
-		runningStat[i].Running[url.Url] = false
+		runningStat[i].Running[site.Url] = false
 		runningStat[i].Mu.Unlock()
-		go updateStatus(url.Url, outputs[i], ServerDone, runningStat[i])
+		go updateStatus(db, site, outputs[i], ServerDone, runningStat[i])
 	}
 
+	// here we are checking and updating everything for real. this is the main ticker loop.
 	for {
 		select {
 		case <- ticker.C:
 			// run all go routines and check
 			fmt.Printf("ticker ---------------\n")
-			for i, url := range(sites) {
+			for i, url := range(sites.Websites) {
 				if runningStat[i].Running[url.Url] == false {
 					go getStatus(url.Url, outputs[i])
 					runningStat[i].Mu.Lock()
