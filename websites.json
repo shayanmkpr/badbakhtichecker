@@ -3,57 +3,57 @@
     {
       "name": "Torob",
       "url": "https://www.torob.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "Google",
       "url": "https://www.google.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "Stack Overflow",
       "url": "https://stackoverflow.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "GitHub",
       "url": "https://github.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "Reddit",
       "url": "https://www.reddit.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "Wikipedia",
       "url": "https://www.wikipedia.org",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "YouTube",
       "url": "https://www.youtube.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "Twitter",
       "url": "https://twitter.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "Facebook",
       "url": "https://www.facebook.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "Instagram",
       "url": "https://www.instagram.com",
-	  "status": false
+	  "Status": false
     },
     {
       "name": "LinkedIn",
       "url": "https://www.linkedin.com",
-	  "status": false
+	  "Status": false
     }
   ]
 }

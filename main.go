@@ -63,7 +63,8 @@ func main() {
 	fmt.Printf("Database connection established\n")
 
 	// Create the tables if they don't exist
-	err = database.CreateTables(db)
+	// Note: Make sure you're using the CreateTables function from the database package
+	err = config.CreateTables(db)
 	if err != nil {
 		fmt.Printf("Could not create tables: %v\n", err)
 		log.Fatal(err)
