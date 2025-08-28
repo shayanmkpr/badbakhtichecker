@@ -38,7 +38,9 @@ func ConnectDB() (*sql.DB, error) {
     db, err := sql.Open("postgres", psqlInfo)
     if err != nil {
         return nil, fmt.Errorf("failed to open database: %v", err)
-    }
+    } else {
+		fmt.Printf("The DB was connected successfully \n")
+	}
     
     // Test the connection
     if err = db.Ping(); err != nil {

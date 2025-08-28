@@ -2,47 +2,58 @@
   "websites": [
     {
       "name": "Torob",
-      "url": "https://www.torob.com"
+      "url": "https://www.torob.com",
+	  "status": false
     },
     {
       "name": "Google",
-      "url": "https://www.google.com"
+      "url": "https://www.google.com",
+	  "status": false
     },
     {
       "name": "Stack Overflow",
-      "url": "https://stackoverflow.com"
+      "url": "https://stackoverflow.com",
+	  "status": false
     },
     {
       "name": "GitHub",
-      "url": "https://github.com"
+      "url": "https://github.com",
+	  "status": false
     },
     {
       "name": "Reddit",
-      "url": "https://www.reddit.com"
+      "url": "https://www.reddit.com",
+	  "status": false
     },
     {
       "name": "Wikipedia",
-      "url": "https://www.wikipedia.org"
+      "url": "https://www.wikipedia.org",
+	  "status": false
     },
     {
       "name": "YouTube",
-      "url": "https://www.youtube.com"
+      "url": "https://www.youtube.com",
+	  "status": false
     },
     {
       "name": "Twitter",
-      "url": "https://twitter.com"
+      "url": "https://twitter.com",
+	  "status": false
     },
     {
       "name": "Facebook",
-      "url": "https://www.facebook.com"
+      "url": "https://www.facebook.com",
+	  "status": false
     },
     {
       "name": "Instagram",
-      "url": "https://www.instagram.com"
+      "url": "https://www.instagram.com",
+	  "status": false
     },
     {
       "name": "LinkedIn",
-      "url": "https://www.linkedin.com"
+      "url": "https://www.linkedin.com",
+	  "status": false
     }
   ]
 }
