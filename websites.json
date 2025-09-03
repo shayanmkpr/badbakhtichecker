@@ -1,6 +1,16 @@
 {
   "websites": [
     {
+      "name": "twitch",
+      "url": "https://www.twitch.com",
+	  "Status": false
+    },
+    {
+      "name": "wallex",
+      "url": "https://www.wallex.ir",
+	  "Status": false
+    },
+    {
       "name": "Torob",
       "url": "https://www.torob.com",
 	  "Status": false
@@ -27,7 +37,7 @@
     },
     {
       "name": "Wikipedia",
-      "url": "https://www.wikipedia.org",
+      "url": "https://www.wikipedia.com",
 	  "Status": false
     },
     {

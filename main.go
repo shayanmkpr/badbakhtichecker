@@ -101,7 +101,7 @@ func main() {
 	runningStat := make([]*models.Runner, len(sites.Websites))
 	
 	// Ticker to check sites every 30 seconds (reduced from 1 second to be less aggressive)
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	// Initialize channels and running status for each site
